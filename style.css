@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue&family=Baloo+2&family=Fredoka&family=Poppins&family=Sniglet&family=Quicksand&display=swap');
+
+
+* {
+    margin: 0px;
+    padding: 0px;
+}
+
+body {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url(resources/images/game_background.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    backdrop-filter: blur(7px);
+}
+
+.container {
+    background-image: url(resources/images/background.jpg);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    width: 100%;
+    transition: 0.2;
+}
+
+.btn {
+    height: 60px;
+    width: 170px;
+    margin: 150px;
+    border-radius: 10px;
+    font-family: 'quicksand';
+    font-size: 2em;
+    color: crimson;
+    font-weight: 900;
+    border: solid 2px crimson;
+    background-color: white;
+    transition: 0.3s;
+}
+
+.btn:active {
+    transform: translateY(10px);
+}
+
+.active {
+    height: 100vh;
+}
