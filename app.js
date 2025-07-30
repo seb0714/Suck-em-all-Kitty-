@@ -4,6 +4,7 @@ const eatenSound = new Audio();
 const bgSound = new Audio();
 const gameBg = new Image();
 const playerImg = new Image();
+const maxSpeed = 10;
 
 let speed = 5;
 let playerScale = 0.3;
@@ -257,8 +258,11 @@ function update() {
 
         if (checkCollision(posX, posY, playerWidth, playerHeight, enemy.x, enemy.y, enemyWidth, enemyHeight)) {
             points++;
-            speed++;
-            playerScale += 0.001;
+            if(!speed < maxSpeed) {
+                speed++;
+            }
+
+            playerScale += 0.01;
             playEatenSound();
             respawnEnemy(enemy);
         }
