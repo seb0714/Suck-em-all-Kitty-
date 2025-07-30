@@ -5,31 +5,25 @@ const bgSound = new Audio();
 const gameBg = new Image();
 const playerImg = new Image();
 const maxSpeed = 10;
+const maxScale = 0.7;
 
 let speed = 5;
 let playerScale = 0.3;
 let ENEMIES = [];
-let enemyObjects = []; // stores all active enemies.
+let enemyObjects = [];
 let canvas, ctx;
 let points = 0;
 let posX = 100;
 let posY = 100;
 let keys = {};
 
-// Timer and highscore
-let timer = 30; // In seconds
+let timer = 30;
 let startTime;
 let highScore = parseInt(localStorage.getItem("highScore")) || 0;
 let gameOver = false;
 let fadeAlpha = 0;
 let fadeDirection = 1;
 
-// Mobile touch controls
-let touchX = null;
-let touchY = null;
-let moveTouch = false;
-
-// Load enemy paths.
 for (let i = 1; i <= 49; i++) {
     ENEMIES.push("resources/images/sanrio_characters/circle_no_resize_" + i + ".png");
 }
@@ -45,14 +39,73 @@ function resizeCanvas() {
     canvas.height = window.innerHeight;
 }
 
+function createControls() {
+    const controls = document.createElement("div");
+    controls.id = "controls";
+    controls.style.position = "absolute";
+    controls.style.bottom = "20px";
+    controls.style.left = "50%";
+    controls.style.transform = "translateX(-50%)";
+    controls.style.display = "grid";
+    controls.style.gridTemplateColumns = "repeat(3, 60px)";
+    controls.style.gridTemplateRows = "repeat(2, 60px)";
+    controls.style.gap = "10px";
+    controls.style.zIndex = "999";
+
+    const upBtn = document.createElement("button");
+    upBtn.textContent = "↑";
+    const leftBtn = document.createElement("button");
+    leftBtn.textContent = "←";
+    const rightBtn = document.createElement("button");
+    rightBtn.textContent = "→";
+    const downBtn = document.createElement("button");
+    downBtn.textContent = "↓";
+
+    [upBtn, leftBtn, rightBtn, downBtn].forEach(btn => {
+        btn.style.width = "60px";
+        btn.style.height = "60px";
+        btn.style.fontSize = "30px";
+        btn.style.background = "#333";
+        btn.style.color = "#fff";
+        btn.style.border = "none";
+        btn.style.borderRadius = "10px";
+        btn.style.userSelect = "none";
+        btn.style.touchAction = "none";
+    });
+
+    controls.appendChild(document.createElement("div"));
+    controls.appendChild(upBtn);
+    controls.appendChild(document.createElement("div"));
+    controls.appendChild(leftBtn);
+    controls.appendChild(downBtn);
+    controls.appendChild(rightBtn);
+
+    document.body.appendChild(controls);
+
+    upBtn.addEventListener("touchstart", () => keys["up"] = true);
+    upBtn.addEventListener("touchend", () => keys["up"] = false);
+
+    downBtn.addEventListener("touchstart", () => keys["down"] = true);
+    downBtn.addEventListener("touchend", () => keys["down"] = false);
+
+    leftBtn.addEventListener("touchstart", () => keys["left"] = true);
+    leftBtn.addEventListener("touchend", () => keys["left"] = false);
+
+    rightBtn.addEventListener("touchstart", () => keys["right"] = true);
+    rightBtn.addEventListener("touchend", () => keys["right"] = false);
+}
+
+function removeControls() {
+    const controls = document.getElementById("controls");
+    if (controls) controls.remove();
+}
+
 function play() {
-    // Hide container with slide-out
     container.style.display = "none";
 
     playSound.play();
     bgSound.play();
 
-    // Create canvas
     canvas = document.createElement("canvas");
     canvas.classList.add("active");
     canvas.id = "canvas";
@@ -61,28 +114,13 @@ function play() {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    // Key listeners
     window.addEventListener("keydown", (e) => keys[e.key.toLowerCase()] = true);
     window.addEventListener("keyup", (e) => keys[e.key.toLowerCase()] = false);
 
-    // Touch listeners
-    canvas.addEventListener("touchstart", (e) => {
-        moveTouch = true;
-        const t = e.touches[0];
-        touchX = t.clientX;
-        touchY = t.clientY;
-    });
-    canvas.addEventListener("touchmove", (e) => {
-        const t = e.touches[0];
-        touchX = t.clientX;
-        touchY = t.clientY;
-    });
-    canvas.addEventListener("touchend", () => moveTouch = false);
+    createControls();
 
-    // Spawn enemies
     spawnEnemies();
 
-    // Reset states
     points = 0;
     posX = 100;
     posY = 100;
@@ -91,13 +129,12 @@ function play() {
     fadeAlpha = 0;
     fadeDirection = 1;
 
-    // Start loop
     requestAnimationFrame(update);
 }
 
 function spawnEnemies() {
     enemyObjects = [];
-    const enemyCount = Math.floor(Math.random() * 3) + 4; // 4-6 enemies
+    const enemyCount = Math.floor(Math.random() * 3) + 4;
 
     for (let i = 1; i < enemyCount; i++) {
         const img = new Image();
@@ -148,7 +185,8 @@ function playEatenSound() {
 function showGameOver() {
     gameOver = true;
 
-    // Save highscore
+    playerScale = 0.3;
+
     if (points > highScore) {
         highScore = points;
         localStorage.setItem("highScore", highScore);
@@ -160,27 +198,22 @@ function showGameOver() {
     function drawGameOver() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Black overlay
         ctx.fillStyle = `rgba(0,0,0,${fadeAlpha})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Game over text
         ctx.font = `${Math.floor(canvas.width * 0.12)}px Poppins`;
         ctx.fillStyle = `rgba(255,0,0,${fadeAlpha})`;
         const msg = "GAME OVER";
         ctx.fillText(msg, (canvas.width - ctx.measureText(msg).width) / 2, canvas.height / 2 - 100);
 
-        // Current score
         ctx.font = `${Math.floor(canvas.width * 0.06)}px Poppins`;
         ctx.fillStyle = `rgba(255,255,255,${fadeAlpha})`;
         const scoreText = "Score: " + points;
         ctx.fillText(scoreText, (canvas.width - ctx.measureText(scoreText).width) / 2, canvas.height / 2 + 300);
 
-        // Highscore
         const highText = "Highscore: " + highScore;
         ctx.fillText(highText, (canvas.width - ctx.measureText(highText).width) / 2, canvas.height / 2 + 120);
 
-        // Fade logic
         if (fadeDirection === 1) {
             fadeAlpha += 0.03;
             if (fadeAlpha >= 1) {
@@ -192,18 +225,30 @@ function showGameOver() {
             fadeAlpha -= 0.03;
             if (fadeAlpha <= 0) {
                 fadeAlpha = 0;
-                // Show container again with slide
                 document.body.removeChild(canvas);
+                removeControls();
 
-                container.style.display = "block";
+                container.style.display = "flex";
                 container.style.opacity = "0";
                 container.style.transition = "transform 0.6s ease, opacity 0.6s ease";
                 const dir = Math.random() < 0.5 ? "-100%" : "100%";
                 container.style.transform = `translateX(${dir})`;
+
+                // Force reflow to fix animation start
+                container.offsetHeight;
+
                 setTimeout(() => {
                     container.style.opacity = "1";
                     container.style.transform = "translateX(0)";
                 }, 50);
+
+                container.addEventListener('transitionend', function clearStyles() {
+                    container.style.transition = "";
+                    container.style.transform = "";
+                    container.style.opacity = "";
+                    container.removeEventListener('transitionend', clearStyles);
+                });
+
                 return;
             }
         }
@@ -217,7 +262,6 @@ function showGameOver() {
 function update() {
     if (gameOver) return;
 
-    // Timer
     const elapsed = (Date.now() - startTime) / 1000;
     const remaining = Math.max(0, timer - elapsed);
 
@@ -226,55 +270,40 @@ function update() {
         return;
     }
 
-    // Movement (touch or keyboard)
-    if (moveTouch && touchX !== null && touchY !== null) {
-        if (touchY < posY) posY -= speed;
-        if (touchY > posY) posY += speed;
-        if (touchX < posX) posX -= speed;
-        if (touchX > posX) posX += speed;
-    } else {
-        if (keys["w"] || keys["arrowup"]) posY -= speed;
-        if (keys["s"] || keys["arrowdown"]) posY += speed;
-        if (keys["a"] || keys["arrowleft"]) posX -= speed;
-        if (keys["d"] || keys["arrowright"]) posX += speed;
-    }
+    if (keys["w"] || keys["arrowup"] || keys["up"]) posY -= speed;
+    if (keys["s"] || keys["arrowdown"] || keys["down"]) posY += speed;
+    if (keys["a"] || keys["arrowleft"] || keys["left"]) posX -= speed;
+    if (keys["d"] || keys["arrowright"] || keys["right"]) posX += speed;
 
     const playerWidth = playerImg.naturalWidth * playerScale;
     const playerHeight = playerImg.naturalHeight * playerScale;
 
-    // Clamp player
     posX = Math.max(0, Math.min(posX, canvas.width - playerWidth));
     posY = Math.max(0, Math.min(posY, canvas.height - playerHeight));
 
-    // Draw
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(gameBg, 0, 0, canvas.width, canvas.height);
     ctx.drawImage(playerImg, posX, posY, playerWidth, playerHeight);
 
-    // Enemies
     enemyObjects.forEach(enemy => {
         const enemyWidth = enemy.img.naturalWidth * enemy.widthScale;
         const enemyHeight = enemy.img.naturalHeight * enemy.heightScale;
 
         if (checkCollision(posX, posY, playerWidth, playerHeight, enemy.x, enemy.y, enemyWidth, enemyHeight)) {
             points++;
-            if(!speed < maxSpeed) {
-                speed++;
-            }
-
-            playerScale += 0.01;
+            if (speed < maxSpeed) speed++;
+            // if (playerScale < maxScale) 
+                playerScale += 0.01;
             playEatenSound();
             respawnEnemy(enemy);
         }
         ctx.drawImage(enemy.img, enemy.x, enemy.y, enemyWidth, enemyHeight);
     });
 
-    // Score
     ctx.font = `${Math.floor(canvas.width * 0.04)}px Poppins`;
     ctx.fillStyle = "Crimson";
     ctx.fillText(points, 40, 100);
 
-    // Timer display
     ctx.font = `${Math.floor(canvas.width * 0.03)}px Poppins`;
     ctx.fillStyle = "Black";
     const text = remaining.toFixed(1);
